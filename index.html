@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>flappy-bird</title>
+</head>
+
+<body>
+    <canvas id="mycanvas" width="800" height="600"></canvas>
+</body>
+<script src="js/bace.js"></script>
+<script src="js/birds.js"></script>
+<script src="js/sky.js"></script>
+<script src="js/floor.js"></script>
+<script src="js/pipe.js"></script>
+<script>
+    var cans = document.getElementById('mycanvas');
+    var csx = cans.getContext('2d');
+    // 图片数据
+    var imgs = ['birds.png', 'land.png', 'sky.png', 'pipe1.png', 'pipe2.png'];
+    // 创建对象
+    var bace = new Bace({
+        csx: csx,
+        cansW: cans.width,
+        cansH: cans.height
+    });
+    bace.imgLoad(imgs, function (objImg) {
+        // 整合容器
+        var integration = [];
+        // 天空
+        var skyImg = objImg['sky.png'];
+        for (var i = 0; i < 2; i++) {
+            var sky = new Sky({
+                csx: csx,
+                Image: skyImg,
+                x: i * skyImg.width
+            });
+            integration.push(sky);
+        };
+        // 上管道
+        var pipe2Img = objImg['pipe2.png'];
+        // 下管道
+        var pipe1Img = objImg['pipe1.png'];
+        for (var i = 0; i < 6; i++) {
+            var pipe = new Pipe({
+                csx: csx,
+                topImage: pipe2Img,
+                bottomImage: pipe1Img,
+                x: 500 + i * 200
+            });
+            integration.push(pipe);
+        };
+        // 地面
+        var floorImg = objImg['land.png'];
+        for (var i = 0; i < 4; i++) {
+            var floor = new Floor({
+                csx: csx,
+                Image: floorImg,
+                x: i * floorImg.width,
+                y: cans.height - floorImg.height
+            });
+            integration.push(floor);
+        };
+
+        // 小鸟
+        var birdImg = objImg['birds.png'];
+        var bird = new Birds({
+            csx: csx,
+            Image: birdImg,
+            x: 100,
+            y: 100,
+            maxAngle: 60
+        });
+        integration.push(bird);
+        // 执行函数
+        var runing = true;
+
+        function render() {
+            csx.clearRect(0, 0, cans.width, cans.height);
+            csx.beginPath();
+            // 执行所有的动画
+            integration.forEach(function (ele) {
+                ele.Draw();
+            }, this);
+            bace.yourTime();            
+            // 判断与上下的距离
+            if (bird.y >= cans.height - floorImg.height - birdImg.height + 10) {
+                runing = false;
+                bace.gameOver();
+            } else if (bird.y <= -10) {
+                bird.y = -10;
+            }
+            // 判断与管道的距离
+            if (csx.isPointInPath(bird.x + bird.picW / 2, bird.y + bird.picH / 2)) {
+                runing = false;
+                bace.gameOver();
+            }
+            if (runing) {
+                requestAnimationFrame(render);
+            }
+        }
+        render();        
+        
+        bird.mouseDown();
+    })
+</script>
+
+</html>
